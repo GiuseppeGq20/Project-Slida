@@ -33,3 +33,5 @@
 -   come organizzare i dati ?
 
 -   leggere paper
+
+-   eliminare prima parte del segnale? (tempo assoluto?)
