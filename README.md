@@ -1,5 +1,5 @@
 # Project-Slida
-May the varaiance be with you
+May the variance be with you
 
 
 
