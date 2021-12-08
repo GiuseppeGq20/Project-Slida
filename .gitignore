@@ -40,3 +40,6 @@ vignettes/*.pdf
 
 # Data folder
 AG2_ramp
+
+#others
+.DS_Store
