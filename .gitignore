@@ -43,3 +43,5 @@ AG2_ramp
 
 #others
 .DS_Store
+__pychache__
+.ipynb_checkpoints
