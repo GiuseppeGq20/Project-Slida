@@ -34,4 +34,6 @@
 
 -   leggere paper
 
+- [PSD](https://en.wikipedia.org/wiki/Spectral_density)
+
 -   eliminare prima parte del segnale? (tempo assoluto?)

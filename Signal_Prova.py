@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
+from scipy.signal import welch
 directory="./AG2_ramp/DATI/A20 PRE/"
 filename=[f"A20_pre_{x}.csv" for x in range(1,11) ]
 
@@ -12,12 +12,33 @@ time=data[:,0]
 data=data[:,1:]
 #compute fft
 datafft=np.fft.rfft(data, axis=0)
-timestep=time[1]-time[0]
+timestep=abs(time[1]-time[0])
+
+fsamp=1/timestep
+
 freq=np.fft.rfftfreq(len(data),d=timestep)
 #compute energy
-e=np.sum(
-    np.abs(datafft)**2
-    , axis=0)
-ediff=np.abs(e[0]-e[1:])
+temp = np.abs(datafft)**2
+temp
+e=np.sum(temp, axis=0)
+plt.plot(e[1:])
+plt.show()
 
+# plt.plot(freq,temp[:,0])
+plt.plot(freq,temp[:,1])
+plt.xlabel("Hz")
+plt.show()
+# %%
+#PSD of the signals
+
+f,Pxx=welch(data[:,1:],fs=fsamp,return_onesided=True,axis=0)
+
+plt.plot(f,Pxx)
+plt.show()
+# %%
+
+#spectrogram
+plt.specgram(data[:,0],NFFT=256, noverlap=128)
+plt.colorbar()
+plt.show()
 # %%
