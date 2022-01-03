@@ -31,7 +31,11 @@ plt.show()
 # %%
 #PSD of the signals
 
+fS,PxxS=welch(data[:,0],fs=fsamp,return_onesided=True,axis=0)
 f,Pxx=welch(data[:,1:],fs=fsamp,return_onesided=True,axis=0)
+
+plt.plot(fS,PxxS)
+plt.show()
 
 plt.plot(f,Pxx)
 plt.show()
