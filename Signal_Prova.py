@@ -25,7 +25,7 @@ plt.plot(e[1:])
 plt.show()
 
 # plt.plot(freq,temp[:,0])
-plt.plot(freq,temp[:,1])
+plt.plot(freq,temp[:,0])
 plt.xlabel("Hz")
 plt.show()
 # %%
