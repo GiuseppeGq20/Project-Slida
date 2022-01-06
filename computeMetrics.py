@@ -53,27 +53,52 @@ def computeEnergyMetrics(filename:str):
     
     return ediff, ToF,Tf
 
-#TODO
-def computeDistance(act_pos, sens_pos):
+def computeDistance(actuator:str,sens_pos:dict,damage_pos:tuple):
+    
+    """
+    from lin eq y=mx+q
+    cartesian form y -mx -q =0
+    and ax+by+c=0
+    then a=-m; c=-q; b=1 only if m is finite
+    """
+    temp=sens_pos.copy()
+    x1=temp[actuator][0]
+    y1=temp[actuator][1]
+
+    xd=damage_pos[0]
+    yd=damage_pos[1]
+
+    del temp[actuator]
+
+    
     d=[]
-    x1=sens_pos[act_pos][0]
-    y1=sens_pos[act_pos][1]
+    for key in temp.keys():
 
-    #get a dict with only sens names
-    sens_name=sens_pos.copy()
-    del sens_name[act_pos]
+        n=() # a b c vector
+        x2=temp[key][0]
+        y2=temp[key][1]
 
-    b=np.zeros((2,1))
+        if abs(x1-x2)<1e-4:
+            a=0
+            b=1
+            c=-x2
 
-    for key in sens_name.keys():
-        x2=sens_pos[key][0]
-        y2=sens_pos[key][1]
-
-        A=np.array([[x1,y1,1],[x2,y2,1]])
-        sol=np.linalg.lstsq(A,b,rcond=None)
-        print(sol)
-
+        elif abs(y1-y2)<1e-3:
+            b=0
+            a=1
+            c=-y2
+        else:
+            m=(y2-y1)/(x2-x1)
+            q=-m*x2 + y2
+            a=-m 
+            b=1
+            c=-q
+        
+        #distance of the path from the damage
+        distance=abs(a*xd +b*yd +c)/ ((a**2 + b**2)**0.5)
+        d.append(distance)
     return d
+
 
 
 # create a dict to contains the information needed
@@ -111,6 +136,7 @@ file_list=[filename+"/"+file for file in file_list]
 
 ediff, Tof, Tf=computeEnergyMetrics(file_list[2])
 
+
 #Distances
 
 #compute posistions
@@ -124,11 +150,15 @@ for i,value in enumerate(sensors[1:]):
     sens_pos[str(value) ]= (r*np.cos(np.deg2rad(-90 - i*delta_angle)),
                             r*np.sin(np.deg2rad(-90 - i*delta_angle)))
 
-computeDistance("20",sens_pos)
+#evaluate distances
+for pair in pairs:
+
+    pair["distances"]=computeDistance(pair["actuator"],sens_pos,damage_pos)
+
 
 
 """TODO
-- compute the distances
+
 - find a way to properly construct a dataframe like:
     distances | actuator | sensor | pre | post | ediff | Tof | Tf
 - organize the script
