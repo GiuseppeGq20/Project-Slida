@@ -45,3 +45,4 @@ AG2_ramp
 .DS_Store
 __pychache__
 .ipynb_checkpoints
+.csv
