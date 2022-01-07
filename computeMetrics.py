@@ -240,7 +240,8 @@ for pair in pairs_list[1:]:
     df=pd.concat([df,temp_df],ignore_index=True)
     
 #save dataframe
-df.to_csv("./AG2_ramp.csv")
+
+df.to_csv("./AG2_ramp.csv",index=False)
 
 """TODO
 - organize the script
