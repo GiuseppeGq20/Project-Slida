@@ -197,22 +197,10 @@ for sens in sensorsname:
     pairs.append(a)
 
 #remove actuator row
-temp=pairs.copy()
-for pair in temp:
+for pair in pairs:
     pair["sensorder"].pop(0)
 
-
-#compute the metrics
-filename=data_dir+"/"+pairs[1]["pre"]
-file_list=listdir(filename)
-
-file_list=[filename+"/"+file for file in file_list]
-
-ediff, Tof, Tf=computeEnergyMetrics(file_list[2])
-
-
 #Distances
-
 #compute posistions
 sens_pos={}
 sens_pos["20"]= (0.0,0.0)
@@ -231,7 +219,6 @@ for pair in pairs:
 
 
 #construct the dataframe
-
 pairs_list=constructDict(pairs)
 
 df=pd.DataFrame(pairs_list[0])
@@ -240,6 +227,7 @@ for pair in pairs_list[1:]:
     df=pd.concat([df,temp_df],ignore_index=True)
     
 #save dataframe
+del df["post"], df["pre"]
 
 df.to_csv("./AG2_ramp.csv",index=False)
 
