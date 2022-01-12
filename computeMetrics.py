@@ -21,16 +21,17 @@ def computeEnergyMetrics(filename:str):
     data=pd.read_csv(filename).to_numpy()
     time=data[:,0]
     data=data[:,1:]
-    f_sample= abs(1/(time[1]-time[2]))
+    f_sample= abs(1/(time[2]-time[1]))
     #compute fft
     data_fft=np.fft.rfft(data, axis=0)
     #compute energydiff
     datafft_squared = np.abs(data_fft)**2
     e=np.sum(datafft_squared, axis=0)
+    # e=data**2 @ time
     ediff=e[0]-e[1:]
 
     #compute stft
-    f, t, Sxx=stft(data,nperseg=128,fs=f_sample,axis=0) #nperseg critical parameter
+    f, t, Sxx=stft(data,nperseg=60,noverlap=59,fs=f_sample,axis=0) #nperseg critical parameter
     Sxx=np.abs(Sxx)
 
     # get max index
@@ -70,7 +71,6 @@ def computeDistance(actuator:str,sens_pos:dict,damage_pos:tuple):
 
     del temp[actuator]
 
-    
     d=[]
     for key in temp.keys():
 
@@ -197,22 +197,10 @@ for sens in sensorsname:
     pairs.append(a)
 
 #remove actuator row
-temp=pairs.copy()
-for pair in temp:
+for pair in pairs:
     pair["sensorder"].pop(0)
 
-
-#compute the metrics
-filename=data_dir+"/"+pairs[1]["pre"]
-file_list=listdir(filename)
-
-file_list=[filename+"/"+file for file in file_list]
-
-ediff, Tof, Tf=computeEnergyMetrics(file_list[2])
-
-
 #Distances
-
 #compute posistions
 sens_pos={}
 sens_pos["20"]= (0.0,0.0)
@@ -231,7 +219,6 @@ for pair in pairs:
 
 
 #construct the dataframe
-
 pairs_list=constructDict(pairs)
 
 df=pd.DataFrame(pairs_list[0])
@@ -240,6 +227,7 @@ for pair in pairs_list[1:]:
     df=pd.concat([df,temp_df],ignore_index=True)
     
 #save dataframe
+del df["post"], df["pre"]
 
 df.to_csv("./AG2_ramp.csv",index=False)
 
