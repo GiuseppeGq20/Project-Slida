@@ -18,7 +18,7 @@ def computeEnergyMetrics(filename:str):
     """
     compute energy metrics for each .csv
     """
-    data=pd.read_csv(filename).to_numpy()
+    data=pd.read_csv(filename,skiprows=2).to_numpy() # skip the initial zeros
     time=data[:,0]
     data=data[:,1:]
     f_sample= abs(1/(time[2]-time[1]))
