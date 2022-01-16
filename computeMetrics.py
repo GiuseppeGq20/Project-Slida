@@ -5,7 +5,9 @@ script to compute the necessary metrics and convert everything to a dataframe
 from os import listdir
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.signal import stft
+
 
 def sortnames(sensors: list,sensname:str) -> tuple:
     sensors=sensors.copy()
@@ -13,22 +15,57 @@ def sortnames(sensors: list,sensname:str) -> tuple:
     sensors.sort()
     sensors.insert(0,actuator)
     return sensors
+
+def translateSignal(array=None,filename= None):
     
+    if filename is not None:
+        array=pd.read_csv(filename,skiprows=2).to_numpy() 
+    
+    array[:,0]=array[:,0]- array[0,0] #translate in time
+    
+    return array
+
+def filterSignal(fr:float,array=None,filename=None):
+
+    if filename is not None:
+        array=pd.read_csv(filename,skiprows=2).to_numpy()
+    
+    means=np.mean(array,axis=0)
+    for i in range(1,array.shape[1]):
+        array[:,i]= array[:,i]- means[i]
+
+    idmax=np.argmax(array,axis=0)
+    t=array[:,0]
+
+    for i in range(2,array.shape[1]): #loop over the signals
+        
+        array[(np.abs(t-t[idmax[i]])> 2.5/fr), i]=0
+    
+    return array
+
 def computeEnergyMetrics(filename:str):
     """
     compute energy metrics for each .csv
     """
+
     data=pd.read_csv(filename,skiprows=2).to_numpy() # skip the initial zeros
+    data=translateSignal(array=data)
+    data=filterSignal(60e3,array=data)
+    
+    
     time=data[:,0]
     data=data[:,1:]
-    f_sample= abs(1/(time[2]-time[1]))
+    # plt.plot(time,data[:,2:])
+    # plt.show()
+    f_sample= abs(1/(time[4]-time[3]))
     #compute fft
-    data_fft=np.fft.rfft(data, axis=0)
+    # data_fft=np.fft.rfft(data, axis=0)
     #compute energydiff
-    datafft_squared = np.abs(data_fft)**2
-    e=np.sum(datafft_squared, axis=0)
-    # e=data**2 @ time
-    ediff=e[0]-e[1:]
+    # datafft_squared = np.abs(data_fft)**2
+    # e=np.sum(datafft_squared, axis=0)
+
+    e=np.sum(data**2,axis=0) #energia calcolata nel dominio del tempo
+    ediff=(e[0]-e[1:])/e[0]
 
     #compute stft
     f, t, Sxx=stft(data,nperseg=60,noverlap=59,fs=f_sample,axis=0) #nperseg critical parameter

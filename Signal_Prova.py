@@ -23,7 +23,7 @@ timestep=abs(time[3]-time[2])
 fsamp=1/timestep
 print(fsamp)
 
-freq=np.fft.rfftfreq(len(data),d=timestep)/fsamp
+freq=np.fft.rfftfreq(len(data),d=timestep)
 #compute energy
 temp = np.abs(datafft)**2
 
