@@ -11,11 +11,11 @@ df_mod<-df_mod %>% mutate(logAdiff=log(AreaDiff), logD=log(Distance))
 
 
 
-# mod normale
-mod=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_mod)
-summary(mod)
-plot(mod)
-df_mod<-df_mod%>% mutate(yhat=predict(mod))
+# mod normale quadratico
+mod_q=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_mod)
+summary(mod_q)
+plot(mod_q)
+df_mod<-df_mod%>% mutate(yhat=predict(mod_q))
 
 df_mod %>%  ggplot()+
   geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))+
@@ -27,7 +27,7 @@ df_mod %>%  ggplot()+
 df_mod<-df_mod %>% mutate(invD=1/Distance)
 
 mod_i=lm(invD~ AreaDiff, data=df_mod[-c(4,40),])
-summary(mod_i)
+summary(mod_i) 
 plot(mod_i)
 df_mod<-df_mod[-c(4,40),]%>% mutate(yhat=predict(mod_i))
 
@@ -35,6 +35,8 @@ df_mod[-c(4,40),] %>%  ggplot()+
   geom_point(aes(y=invD, x= AreaDiff, color=as.factor(Sensor)))+
   geom_smooth(aes(y=invD, x= AreaDiff),method="lm")+
   geom_line(aes(x=AreaDiff, y= yhat), color="red")
+
+
 
 # quadratic log model
 mod= lm(Distance~ logAdiff + I(logAdiff^2), data = df_mod[-c(2,4,40),])
