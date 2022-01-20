@@ -49,6 +49,7 @@ for(i in 1:N_sens){
       }
       else{
         A[i,j]=sign(A[i,j])/0
+        lines(c(x_sens[i],x_sens[j]),c(y_sens[i],y_sens[j]))
       }
     }
   }
@@ -86,8 +87,8 @@ for(i in 1:N_sens){
         lines(x,A[i,j]*x+B[i,j])              # path plot
         lines(x,A[i,j]*x+C[i,j],col="red")    # parallel from damage plot
         alp=atan2(y_sens[j]-y_sens[i],x_sens[j]-x_sens[i])
-        x=c(xd,xd + D[i,j]*sin(alp))
-        y=c(yd,yd - D[i,j]*cos(alp))
+        x=c(xd,xd + sign(C[i,j]-B[i,j])*D[i,j]*sin(alp))
+        y=c(yd,yd - sign(C[i,j]-B[i,j])*D[i,j]*cos(alp))
         lines(x,y,col="green")                # distance plot
       }
       else{                         # vertical paths
@@ -106,6 +107,9 @@ for(i in 1:N_sens){
 Response=matrix(0,10*factorial(N_sens)/factorial(N_sens-2))
 Attuatore=Response
 Sensore=Response
+Index = Response
+nomefile_pre=Response
+nomefile_post=Response
 idx=0
 for (i in 1:N_sens){
   for(j in 1:N_sens){
@@ -115,19 +119,24 @@ for (i in 1:N_sens){
       Response[idx]=abs(D[i,j])
       Sensore[idx]=ordering[j]
       Attuatore[idx]=ordering[i]
+      Index[idx]=k
+      nomefile_pre[idx]=paste("A",toString(Attuatore[idx])," PRE/A",toString(Attuatore[idx]),"_pre_",toString(k),".csv",sep="")
+      nomefile_post[idx]=paste("A",toString(Attuatore[idx])," POST/A",toString(Attuatore[idx]),"_post_",toString(k),".csv",sep="")
     }
     }
   }
 }
-df=data.frame(cbind(Attuatore,Sensore,Response))
-names(df)=c("Actuator","Sensor","Distance")
+df=data.frame(cbind(Attuatore,Sensore,Response,Index,nomefile_pre,nomefile_post))
+names(df)=c("Actuator","Sensor","Distance","Index","File_pre","File_post")
 
 library(tidyverse)
-df=df %>% mutate(Actuator=as.factor(Actuator), Sensor= as.factor(Sensor))
+df=df %>% mutate(Actuator=as.factor(Actuator), Sensor= as.factor(Sensor),Distance=as.numeric(Distance),
+                 Index= as.factor(Index),File_pre= as.factor(File_pre)
+                 ,File_post= as.factor(File_post))
 
 df %>% ggplot()+
   geom_density(mapping=aes(x=Distance,fill=Sensor))#+
-  #facet_wrap(~ Actuator)
+#  facet_wrap(~ Actuator)
 
 write.csv(df, file = "df_Distance.csv")
 
