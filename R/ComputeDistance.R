@@ -49,6 +49,7 @@ for(i in 1:N_sens){
       }
       else{
         A[i,j]=sign(A[i,j])/0
+        B[i,j]=x_sens[i]
         lines(c(x_sens[i],x_sens[j]),c(y_sens[i],y_sens[j]))
       }
     }
@@ -110,6 +111,10 @@ Sensore=Response
 Index = Response
 nomefile_pre=Response
 nomefile_post=Response
+
+a_path= Response
+b_path= Response
+
 idx=0
 for (i in 1:N_sens){
   for(j in 1:N_sens){
@@ -120,22 +125,26 @@ for (i in 1:N_sens){
       Sensore[idx]=ordering[j]
       Attuatore[idx]=ordering[i]
       Index[idx]=k
+      
+      a_path[idx]=A[i,j]
+      b_path[idx]=B[i,j]
+      
       nomefile_pre[idx]=paste("A",toString(Attuatore[idx])," PRE/A",toString(Attuatore[idx]),"_pre_",toString(k),".csv",sep="")
       nomefile_post[idx]=paste("A",toString(Attuatore[idx])," POST/A",toString(Attuatore[idx]),"_post_",toString(k),".csv",sep="")
     }
     }
   }
 }
-df=data.frame(cbind(Attuatore,Sensore,Response,Index,nomefile_pre,nomefile_post))
-names(df)=c("Actuator","Sensor","Distance","Index","File_pre","File_post")
+df=data.frame(cbind(Attuatore,Sensore,Response,Index,a_path,b_path,nomefile_pre,nomefile_post))
+names(df)=c("Actuator","Sensor","Distance","Index","a_path","b_path","File_pre","File_post")
 
-library(tidyverse)
-df=df %>% mutate(Actuator=as.factor(Actuator), Sensor= as.factor(Sensor),Distance=as.numeric(Distance),
-                 Index= as.factor(Index),File_pre= as.factor(File_pre)
-                 ,File_post= as.factor(File_post))
-
-df %>% ggplot()+
-  geom_density(mapping=aes(x=Distance,fill=Sensor))#+
+# library(tidyverse)
+# df=df %>% mutate(Actuator=as.factor(Actuator), Sensor= as.factor(Sensor),Distance=as.numeric(Distance),
+#                  Index= as.factor(Index),File_pre= as.factor(File_pre)
+#                  ,File_post= as.factor(File_post))
+# 
+# df %>% ggplot()+
+#   geom_density(mapping=aes(x=Distance,fill=Sensor))#+
 #  facet_wrap(~ Actuator)
 
 write.csv(df, file = "df_Distance.csv")

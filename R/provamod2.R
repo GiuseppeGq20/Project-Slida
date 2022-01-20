@@ -14,7 +14,7 @@ df_mod<-df_mod %>% mutate(logAdiff=log(AreaDiff), logD=log(Distance))
 # mod normale quadratico
 mod_q=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_mod)
 summary(mod_q)
-plot(mod_q)
+#plot(mod_q)
 df_mod<-df_mod%>% mutate(yhat=predict(mod_q))
 
 df_mod %>%  ggplot()+
