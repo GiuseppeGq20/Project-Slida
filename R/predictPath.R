@@ -1,10 +1,12 @@
 
 library(tidyverse)
+library(plotly)
+
 df<-read_csv("completeDf.csv")
 
 R=150e-3
 
-df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==2, AreaDiff > 0)
+df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==3, AreaDiff > 0)
 
 
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
@@ -15,15 +17,6 @@ df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 #mod quadratico
 mod_q=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_mod)
 summary(mod_q)
-
-#plot(mod_q)
-
-
-#plot model vs geom_smooth
-df_mod %>%  ggplot()+
-  geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))+
-  geom_smooth(aes(y=Distance, x= AreaDiff))+
-  geom_line(aes(x=AreaDiff, y= predict(mod_q)), color="red")
 
 
 #residui su dati diversi
@@ -39,8 +32,9 @@ z_hat= df_predict$Distance - y_hat
 
 plot(y_hat,z_hat)
 
-dlim=1.6*min(df_predict$yhat)
 dlim=max(df_predict$yhat)
+
+dlim=1.8*min(df_predict$yhat)
 
 damaged_path <- df_predict %>% arrange(yhat) %>%  filter(yhat<dlim)
 
@@ -109,7 +103,7 @@ colnames(y)=paste(damaged_path$Actuator, "-",damaged_path$Sensor)
 rownames(y)=paste(damaged_path$Actuator, "-",damaged_path$Sensor)
 
 w=matrix(NaN,N,N)
-clnames(w)=paste(damaged_path$Actuator, "-",damaged_path$Sensor)
+colnames(w)=paste(damaged_path$Actuator, "-",damaged_path$Sensor)
 rownames(w)=paste(damaged_path$Actuator, "-",damaged_path$Sensor)
 
 for (i in 1:N){
@@ -146,26 +140,44 @@ for (i in 1:N){
       d_j=path_j$yhat
       
       w[i,j]= 2/(d_i + d_j)
-      
+      #w[i,j]= 1/sqrt(d_i^2 + d_j^2)
     }
   }
 }
 
 
+
+for (i in 1:N) {
+  
+  for (j in 1:N) {
+    
+    if(!(x[i,j]^2 + y[i,j]^2 < (0.99*R)^2) & (!is.nan(x[i,j]) || !is.nan(y[i,j]))){
+      x[i,j]=NaN
+      y[i,j]=NaN
+    }
+  }
+}
+
 # intersection position vector
 
-xw=x*w
-yw=y*w
 x_vec=x[upper.tri(x) & !is.nan(x)]
 y_vec=y[upper.tri(y) & !is.nan(y)]
-w_vec=w[upper.tri(xw) & !is.nan(xw)]
+w_vec=w[upper.tri(x) & !is.nan(x)]
 
-points(x_vec,y_vec, col="yellow")
+points(x_vec,y_vec, col="green")
 
+#normal mean
+x_g1=mean(x_vec)
+y_g1=mean(y_vec)
+points(x_g1,y_g1,col="azure4")
+
+#weighted intersection
+xw=x*w
+yw=y*w
 x_vec=xw[upper.tri(xw) & !is.nan(xw)]
 y_vec=yw[upper.tri(yw) & !is.nan(yw)]
 
 x_g=sum(x_vec)/(sum(w_vec))
 y_g=sum(y_vec)/(sum(w_vec))
 
-points(x_g,y_g,col="red")
+points(x_g,y_g,col="blue")
