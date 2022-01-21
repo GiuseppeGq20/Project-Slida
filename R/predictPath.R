@@ -1,6 +1,6 @@
 
 library(tidyverse)
-library(plotly)
+
 
 df<-read_csv("completeDf.csv")
 
@@ -74,13 +74,13 @@ for (i in 1:nrow(damaged_path)){
   d=damaged_path$yhat[i]*(2*R)
   if (is.finite(a)) { 
     lines(x,a*x+ b )
-    lines(x,a*x+ b + d,type = "l",lty=2)
-    lines(x,a*x+ b - d,type = "l",lty=2)
+    # lines(x,a*x+ b + d,type = "l",lty=2)
+    # lines(x,a*x+ b - d,type = "l",lty=2)
   }else{
     
     lines(c(b,b),x)
-    lines(c(b+d,b+d),x,type = "l",lty=2)
-    lines(c(b-d,b-d),x,type = "l",lty=2)
+    # lines(c(b+d,b+d),x,type = "l",lty=2)
+    # lines(c(b-d,b-d),x,type = "l",lty=2)
   }
   
 }
@@ -181,3 +181,6 @@ x_g=sum(x_vec)/(sum(w_vec))
 y_g=sum(y_vec)/(sum(w_vec))
 
 points(x_g,y_g,col="blue")
+
+
+
