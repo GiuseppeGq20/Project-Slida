@@ -2,6 +2,8 @@
 library(tidyverse)
 df<-read_csv("completeDf.csv")
 
+R=150e-3
+
 df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==2, AreaDiff > 0)
 
 
@@ -37,7 +39,8 @@ z_hat= df_predict$Distance - y_hat
 
 plot(y_hat,z_hat)
 
-dlim=1.3*min(df_predict$yhat)
+dlim=1.6*min(df_predict$yhat)
+dlim=max(df_predict$yhat)
 
 damaged_path <- df_predict %>% arrange(yhat) %>%  filter(yhat<dlim)
 
@@ -46,10 +49,10 @@ D_mean <- mean(df_mod$Distance)
 
 ###-------PLOT PATH------
 
-pplotDistance <- function() {
+
   
 
-damaged_path <- df_predict %>% arrange(yhat) %>%  filter(yhat<dlim)
+
 ## DATA ------------------------------------------------------------------------
 R=150*10^-3;  # radius of the sensor circle [m]
 dalpha=30;     # angular distance between sensors [deg]
@@ -68,6 +71,8 @@ y_sens=c(y_sens,0)
 plot(x_sens,y_sens,asp =1)
 ordering=c(47:42,25,24,22,21,49,48,20)  # Vector that describe the sensors order
 
+pplotDistance <- function() {
+damaged_path <- df_predict %>% arrange(yhat) %>%  filter(yhat<dlim)
 x=c(-R,R)
 for (i in 1:nrow(damaged_path)){
   b=damaged_path$b_path[i]
@@ -90,3 +95,77 @@ points(xd,yd, col="red")
 
 
 pplotDistance()
+
+
+
+# calc damage position
+N=nrow(damaged_path)
+x=matrix(NaN,N,N)
+colnames(x)=paste(damaged_path$Actuator, "-",damaged_path$Sensor)
+rownames(x)=paste(damaged_path$Actuator, "-",damaged_path$Sensor)
+
+y=matrix(NaN,N,N)
+colnames(y)=paste(damaged_path$Actuator, "-",damaged_path$Sensor)
+rownames(y)=paste(damaged_path$Actuator, "-",damaged_path$Sensor)
+
+w=matrix(NaN,N,N)
+clnames(w)=paste(damaged_path$Actuator, "-",damaged_path$Sensor)
+rownames(w)=paste(damaged_path$Actuator, "-",damaged_path$Sensor)
+
+for (i in 1:N){
+  path_i=damaged_path[i,]
+  
+  a_i=path_i$a_path
+  b_i=path_i$b_path
+  d_i=path_i$yhat
+  
+  for (j in 1:N ){
+    
+    if(i!=j){
+    
+      path_j=damaged_path[j,]
+      
+      a_j=path_j$a_path
+      b_j=path_j$b_path
+      
+      if((a_i != a_j) & is.finite(a_i) & is.finite(a_j) ){
+        x[i,j]= (b_j-b_i)/(a_i-a_j)
+        y[i,j]=a_j*x[i,j] + b_j
+       
+      }else if( !is.finite(a_i) & is.finite(a_j)){
+        
+        x[i,j]=b_i
+        y[i,j]=a_j*x[i,j] + b_j
+        
+      }else if(is.finite(a_i) & !is.finite(a_j)){
+        x[i,j]=b_j
+        y[i,j]=a_i*x[i,j] + b_i
+        
+      }
+      
+      d_j=path_j$yhat
+      
+      w[i,j]= 2/(d_i + d_j)
+      
+    }
+  }
+}
+
+
+# intersection position vector
+
+xw=x*w
+yw=y*w
+x_vec=x[upper.tri(x) & !is.nan(x)]
+y_vec=y[upper.tri(y) & !is.nan(y)]
+w_vec=w[upper.tri(xw) & !is.nan(xw)]
+
+points(x_vec,y_vec, col="yellow")
+
+x_vec=xw[upper.tri(xw) & !is.nan(xw)]
+y_vec=yw[upper.tri(yw) & !is.nan(yw)]
+
+x_g=sum(x_vec)/(sum(w_vec))
+y_g=sum(y_vec)/(sum(w_vec))
+
+points(x_g,y_g,col="red")
