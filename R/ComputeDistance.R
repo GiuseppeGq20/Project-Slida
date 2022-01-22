@@ -3,6 +3,9 @@
 # Reference system: 
 # origin in Sensor 20; x direction is 20-47; y direction is 20-44
 
+#library
+library(plotrix)
+
 ## DATA ------------------------------------------------------------------------
 R=150*10^-3;  # radius of the sensor circle [m]
 dalpha=30;     # angular distance between sensors [deg]
@@ -18,7 +21,9 @@ x_sens=R*cos(alpha)     # x coordinates of the sensors [m]
 y_sens=R*sin(alpha)     # y coordinates of the sensors [m]
 x_sens=c(x_sens,0)
 y_sens=c(y_sens,0)
-plot(x_sens,y_sens)
+plot(x_sens,y_sens,asp=1,pch=19,
+     xlab = "x [m]",
+     ylab="y [m]")
 ordering=c(47:42,25,24,22,21,49,48,20)  # Vector that describe the sensors order
 
 ## Compute A,B and c -----------------------------------------------------------
@@ -31,8 +36,11 @@ A=matrix(0,N_sens,N_sens)       # initialize matrices A,B and C
 B=A
 C=A
 for(i in 1:N_sens){
-  plot(x_sens,y_sens)
-  points(xd,yd,col="red")
+  plot(x_sens,y_sens,asp = 1,pch = 19,
+       xlab="x [m]",
+       ylab="y [m]")
+  draw.circle(0,0,R) # added for visualization purposes
+  points(xd,yd,col="red",pch = 19)
   for(j in 1:N_sens){
     if(j!=i){
       A[i,j]= (y_sens[j]-y_sens[i])/(x_sens[j]-x_sens[i])
@@ -43,14 +51,14 @@ for(i in 1:N_sens){
         # path plot
         x=c(x_sens[i],x_sens[j])
         y=A[i,j]*x + B[i,j]
-        lines(x,y)
+        lines(x,y,asp=1)
         # paralell plot
         #lines(x,A[i,j]*x+C[i,j],col="red")
       }
       else{
         A[i,j]=sign(A[i,j])/0
         B[i,j]=x_sens[i]
-        lines(c(x_sens[i],x_sens[j]),c(y_sens[i],y_sens[j]))
+        lines(c(x_sens[i],x_sens[j]),c(y_sens[i],y_sens[j]),asp=1)
       }
     }
   }
@@ -64,6 +72,7 @@ for(i in 1:N_sens){
     if(j!=i){
       if(is.finite(A[i,j])){
         D[i,j]=abs(B[i,j]-C[i,j])*cos(atan2(y_sens[j]-y_sens[i],x_sens[j]-x_sens[i]))
+
       }
       else{
         D[i,j]=xd-x_sens[i]

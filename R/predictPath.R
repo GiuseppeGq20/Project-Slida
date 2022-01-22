@@ -18,7 +18,6 @@ df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 mod_q=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_mod)
 summary(mod_q)
 
-
 #residui su dati diversi
 df_predict<- df %>%
   mutate(Distance= Distance/(2*R) ) %>% 
@@ -62,7 +61,9 @@ x_sens=R*cos(alpha)     # x coordinates of the sensors [m]
 y_sens=R*sin(alpha)     # y coordinates of the sensors [m]
 x_sens=c(x_sens,0)
 y_sens=c(y_sens,0)
-plot(x_sens,y_sens,asp =1)
+plot(x_sens,y_sens,asp =1,pch = 19,
+     xlab="x [m]",
+     ylab="y [m]")
 ordering=c(47:42,25,24,22,21,49,48,20)  # Vector that describe the sensors order
 
 pplotDistance <- function() {
@@ -79,12 +80,12 @@ for (i in 1:nrow(damaged_path)){
   }else{
     
     lines(c(b,b),x)
-    # lines(c(b+d,b+d),x,type = "l",lty=2)
-    # lines(c(b-d,b-d),x,type = "l",lty=2)
-  }
+  #   lines(c(b+d,b+d),x,type = "l",lty=2)
+  #   lines(c(b-d,b-d),x,type = "l",lty=2)
+   }
   
 }
-points(xd,yd, col="red")
+points(xd,yd, col="red",pch = 19)
 }
 
 
@@ -164,12 +165,14 @@ x_vec=x[upper.tri(x) & !is.nan(x)]
 y_vec=y[upper.tri(y) & !is.nan(y)]
 w_vec=w[upper.tri(x) & !is.nan(x)]
 
+# contour(x_vec,y_vec,w_vec)
+
 points(x_vec,y_vec, col="green")
 
 #normal mean
-x_g1=mean(x_vec)
-y_g1=mean(y_vec)
-points(x_g1,y_g1,col="azure4")
+# x_g1=mean(x_vec)
+# y_g1=mean(y_vec)
+# points(x_g1,y_g1,col="azure4",pch = 19)
 
 #weighted intersection
 xw=x*w
@@ -180,7 +183,9 @@ y_vec=yw[upper.tri(yw) & !is.nan(yw)]
 x_g=sum(x_vec)/(sum(w_vec))
 y_g=sum(y_vec)/(sum(w_vec))
 
-points(x_g,y_g,col="blue")
+points(x_g,y_g,col="blue",pch = 19)
 
-
+#legend
+legend(-0.3,0.1,legend=c("real damage", "damage estimate"),
+       col=c("red", "blue"),pch=19, cex=0.8)
 

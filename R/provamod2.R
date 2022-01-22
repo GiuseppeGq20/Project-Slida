@@ -1,21 +1,15 @@
 library(tidyverse)
 
 df<-read_csv("completeDf.csv")
-
 df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==2, AreaDiff > 0)
-
-
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
-
 df_mod<-df_mod %>% mutate(logAdiff=log(AreaDiff), logD=log(Distance))
-
-
 
 # mod normale quadratico
 mod_q=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_mod)
 summary(mod_q)
 #plot(mod_q)
-df_mod<-df_mod%>% mutate(yhat=predict(mod_q))
+df_mod<-df_mod %>% mutate(yhat=predict(mod_q))
 
 df_mod %>%  ggplot()+
   geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))+
