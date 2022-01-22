@@ -2,6 +2,7 @@
 #tune Model
 
 library(tidyverse)
+library(latex2exp)
 df<-read_csv("completeDf.csv")
 
 R=150e-3
@@ -10,6 +11,9 @@ df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==3, AreaDiff > 0)
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 
+
+
+#adj mod
 Radj=0
 Radj_new=1
 iter=0
@@ -83,11 +87,26 @@ df_new <- df_new %>% mutate(AreaDiffSquared= AreaDiff^2)
 xnew= df_new %>% select(AreaDiff,AreaDiffSquared) %>% as.matrix()
 
 
+
+#polynomial model
+
+df<-read_csv("completeDf.csv")
+R=150e-3
+df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==3, AreaDiff > 0)
+df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
+df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
+
+#mod quadratico
+mod_q1=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_mod)
+summary(mod_q1)
+
 #comparison ridge other model
 
-df_mod %>%  ggplot()+
+plot<-df_mod %>%  ggplot()+
   geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))+
   geom_smooth(aes(y=Distance, x= AreaDiff))+
   geom_line(data=df_temp_q, mapping=aes(x=AreaDiff, y= predict(mod_q)), color="red")+
-  geom_line(data=df_mod, mapping=aes(x=AreaDiff, y= predict(ridge.fit,newx =x )), color="green")
-
+  geom_line(data=df_mod, mapping=aes(x=AreaDiff, y= predict(mod_q1)), color="green")
+  # geom_line(data=df_mod, mapping=aes(x=AreaDiff, y= predict(ridge.fit,newx =x )), color="green")+
+  
+plot +  labs(color="Sensor",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
