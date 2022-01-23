@@ -21,7 +21,7 @@ summary(mod_q)
 #residui su dati diversi
 df_predict<- df %>%
   mutate(Distance= Distance/(2*R) ) %>% 
-  filter(Actuator!=20,Sensor!=20,Index==7, AreaDiff > 0)
+  filter(Actuator!=20,Sensor!=20,Index==4, AreaDiff > 0)
 
 y_hat= predict(mod_q,newdata = df_predict)
 
@@ -33,7 +33,7 @@ plot(y_hat,z_hat)
 
 dlim=max(df_predict$yhat)
 
-dlim=1.8*min(df_predict$yhat)
+dlim=2.5*min(df_predict$yhat)
 
 damaged_path <- df_predict %>% arrange(yhat) %>%  filter(yhat<dlim)
 
@@ -188,4 +188,12 @@ points(x_g,y_g,col="blue",pch = 19)
 #legend
 legend(-0.3,0.1,legend=c("real damage", "damage estimate"),
        col=c("red", "blue"),pch=19, cex=0.8)
+
+# %position difference
+xd=81e-3
+yd=40e-3
+
+x_p=(x_g-xd)/xd
+y_p=(y_g-yd)/yd
+
 

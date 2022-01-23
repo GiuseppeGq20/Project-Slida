@@ -49,7 +49,7 @@ while(Radj_new>Radj ){
   print(paste("iter=",toString(iter)," Radj=",toString(Radj)))
   
 }
-
+# plot(mod_q)
 
 #plot model vs geom_smooth
 df_mod %>%  ggplot()+
@@ -103,7 +103,7 @@ plot<-df_mod %>%  ggplot()+
   geom_smooth(aes(y=Distance, x= AreaDiff))+
   geom_line(data=df_temp_q, mapping=aes(x=AreaDiff, y= predict(mod_q)), color="red")+
   geom_line(data=df_mod, mapping=aes(x=AreaDiff, y= predict(mod_q1)), color="green")
-plot +  labs(color="Sensor",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
+plot +  labs(color="Sensors",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
 
 
 # plots for the presentation
@@ -113,14 +113,14 @@ labels=data.frame(labels=c("geom_smooth", "full model", "censored Model"))
 plot<-df_mod %>%  ggplot()+
   geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))
 
-plot +  labs(color="Sensor",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
+plot +  labs(color="Sensors",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
 
 #points + geom_smooth
 plot<-df_mod %>%  ggplot()+
   geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))+
   geom_smooth(aes(y=Distance, x= AreaDiff),)
 
-plot +  labs(color="Sensor",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
+plot +  labs(color="Sensors",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
 
 #points + geom_smooth + full mod + mod_adj
 plot<-df_mod %>%  ggplot()+
@@ -132,4 +132,4 @@ plot<-plot+
   geom_line(data=df_mod, mapping=aes(x=AreaDiff, y= predict(mod_q1), colour="full"))+
   scale_color_manual(name = "models", values = c("censored" = "red", "full" = "green", "LOESS"="blue"))
 
-plot +  labs(color="Sensor",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
+plot +  labs(color="Sensors",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
