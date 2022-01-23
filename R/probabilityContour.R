@@ -1,24 +1,53 @@
 #BROKEN
 
 library(tidyverse)
+library(pracma)
+library(plot3D)
 
 #load model
 load("mod.Rdata")
-
+R=150e-3
 #load df
 df<-read_csv("completeDf.csv")
 df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==2, AreaDiff > 0)
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
+df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
 
-y.predict <-predict(mod_q,newdata = df_mod, se=TRUE)
+# df_predict=df_mod
+# df_predict
+# dlim=1.8*min(df_predict$yhat)
+# damaged_path <- df_predict %>% arrange(yhat) %>%  filter(yhat<dlim)
+
+y.predict <- predict(mod_q,newdata = df_mod, se=TRUE,interval="predict")
+
 dof=y.predict$df
+residual.scale=y.predict$residual.scale
 
-y.predict<- data.frame(fit=y.predict$fit, se=y.predict$se.fit)
+y.predict<- data.frame(fit=y.predict$fit[,1],
+                       fit.lwr=y.predict$fit[,2],
+                       fit.upr=y.predict$fit[,3],
+                       x=df_mod$AreaDiff, se=y.predict$se.fit)
 
+#prova plot
+y.predict %>% mutate(y1=fit.upr,y2=fit.lwr) %>%
+  mutate(upr=fit +qt(0.975,df=dof)*sqrt(se^2 + residual.scale^2)) %>% 
+  ggplot()+
+  geom_line(aes(x=x, y=fit), color="red")+
+  geom_line(aes(x=x, y=y1), color="blue")+
+  geom_line(aes(x=x, y=y2), color="blue")+
+  geom_line(aes(x=x,y=upr), color="yellow")
+  geom_point(data = df_mod, mapping = aes(x= AreaDiff,y=Distance))
 
 #function to calculate probability
+# Z=model.matrix(mod_q)
+# zz_inv= pinv(Z)
+# a_stime= zz_inv %*% mod_q$model$Distance 
+
+# lambda_inv= as.matrix(zz_inv$d^-1) %*% diag(length(zz_inv$d))
+# zz_inv=zz_inv$u %*% lambda_inv %*% t(zz_inv$v)
+
 probabilty <- function(y0,y.predict,dof,mod_q) {
-  # y0 is distance vector from all path to a defined point
+  
   
   logp = sum(dt((y0-y.predict$fit)/y.predict$se,df= dof, log=TRUE))
   
@@ -41,7 +70,6 @@ distance<- function(df_mod,x0,y0){
     b=path_i$b_path
     
     if(is.finite(a)){
-      c=y0 - a*x0
       # D[i]=abs(b-c)*cos(atan2(y_sens[j]-y_sens[i],x_sens[j]-x_sens[i]))
       D[i]=abs(-a*x0 + y0 - b)/(sqrt(a^2 + 1))
     }
@@ -53,12 +81,12 @@ distance<- function(df_mod,x0,y0){
   return(D)
 }
  
-# d= distance(df_mod = df_mod, x0=81e-3, y0=40e-3)
-
+d= distance(df_mod = df_mod, x0=81e-3, y0=40e-3)
+d/(2*R) - df_mod$Distance #comparison with damage distances
 
 # define meshgrid
 R=150e-3
-N=5
+N=10
 x=seq(from=-R,to=R,length.out=N)
 y=x
 
@@ -67,21 +95,32 @@ plot(0,0,
      ylim = c(-R,R))
 prob=matrix(0,N,N)
 
-Z=model.matrix(mod_q)
-# inflation= t(df_mod$AreaDiff, df_mod$AreaDiff^2) %*% (t(Z) %*%Z) %*% df_mod$AreaDiff
-sigma_hat= crossprod(mod_q$residuals)/mod_q$df.residual
+# Z=model.matrix(mod_q)
+# inflation= t(df_mod$AreaDiff, df_mod$AreaDiff^2) %*% solve((t(Z) %*%Z)) %*% df_mod$AreaDiff
+# sigma_hat= crossprod(mod_q$residuals)/mod_q$df.residual
 
 for (i in 1:N){
   
   for (j in 1:N) {
     
-    d=distance(df_mod = df_mod, x0=x[i],y0=y[j])
-    logp = sum(dt((d/R -y.predict$fit)/sqrt(y.predict$se^2 + as.vector(sigma_hat)), df= dof, log=TRUE))
+    d=distance(df_mod = df_mod, x0=x[i],y0=y[j])/(2*R)
+    p_point=dt((-d +y.predict$fit)/sqrt(y.predict$se^2 + residual.scale^2), df= dof, log=TRUE)
+    
+    # for (i in nrow(d)) {
+    #   qt=(d[i] -y.predict$fit[i])/sqrt(y.predict$se[i]^2 + residual.scale^2)
+    #   p=dt()
+    #   
+    # }
+    logp = sum(p_point)
     print(exp(logp))
-    # prob[i,j]=probabilty(y0=d,y.predict,dof,mod_q)  
+    prob[i,j]=exp(logp)
+    
+    # points(x[i],y[j])
   }
-    # print(paste("Complete : ",toString(i/(N)*100)," % "))
+    print(paste("Complete : ",toString(i/(N)*100)," % "))
 }
 
 
 contour(x,y,prob)
+plot3D::image2D(prob,x,y)
+points(x=81e-3,y=40e-3, pch=19, col="red")
