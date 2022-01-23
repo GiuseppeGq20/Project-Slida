@@ -7,7 +7,7 @@ df<-read_csv("completeDf.csv")
 
 R=150e-3
 
-df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==3, AreaDiff > 0)
+df_mod<-df %>% filter(Actuator!=20,Sensor!=20, AreaDiff > 0)
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 
@@ -88,7 +88,7 @@ df_mod %>%  ggplot()+
 #polynomial model
 df<-read_csv("completeDf.csv")
 R=150e-3
-df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==3, AreaDiff > 0)
+df_mod<-df %>% filter(Actuator!=20,Sensor!=20, AreaDiff > 0)
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 
@@ -96,6 +96,9 @@ df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 mod_q1=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_mod)
 summary(mod_q1)
 
+#linear model
+mod_l=lm(Distance ~ AreaDiff, data=df_mod)
+summary(mod_l)
 #comparison model
 
 plot<-df_mod %>%  ggplot()+
@@ -118,13 +121,20 @@ plot +  labs(color="Sensors",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
 #points + geom_smooth
 plot<-df_mod %>%  ggplot()+
   geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))+
-  geom_smooth(aes(y=Distance, x= AreaDiff),)
+  geom_smooth(aes(y=Distance, x= AreaDiff))
+
+plot +  labs(color="Sensors",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
+
+#points + geom_smooth + full mod
+plot<-df_mod %>%  ggplot()+
+  geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))+
+  geom_line(data=df_mod, mapping=aes(x=AreaDiff, y= predict(mod_q1)),color="green", size=1.5)
 
 plot +  labs(color="Sensors",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
 
 #points + geom_smooth + full mod + mod_adj
 plot<-df_mod %>%  ggplot()+
-  geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))
+  geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))+
 
 plot<-plot+  
   geom_smooth(aes(y=Distance, x= AreaDiff, colour= "LOESS"))+
