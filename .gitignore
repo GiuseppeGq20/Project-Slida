@@ -46,5 +46,4 @@ AG2_ramp
 __pychache__
 *.ipynb_checkpoints
 *.csv
-*.jpeg
-*.svg
+

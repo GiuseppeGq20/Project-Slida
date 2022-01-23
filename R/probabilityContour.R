@@ -104,7 +104,7 @@ for (i in 1:N){
   for (j in 1:N) {
     
     d=distance(df_mod = df_mod, x0=x[i],y0=y[j])/(2*R)
-    p_point=dt((-d +y.predict$fit)/sqrt(y.predict$se^2 + residual.scale^2), df= dof, log=TRUE)
+    p_point=dt((d -y.predict$fit)/sqrt(y.predict$se^2 + residual.scale^2), df= dof, log=TRUE)
     
     # for (i in nrow(d)) {
     #   qt=(d[i] -y.predict$fit[i])/sqrt(y.predict$se[i]^2 + residual.scale^2)
