@@ -1,7 +1,6 @@
 #BROKEN
 
 library(tidyverse)
-library(pracma)
 library(plot3D)
 
 #load model
@@ -112,8 +111,8 @@ for (i in 1:N){
     #   
     # }
     logp = sum(p_point)
-    print(exp(logp))
-    prob[i,j]=exp(logp)
+#    print(exp(logp))
+    prob[i,j]=logp
     
     # points(x[i],y[j])
   }

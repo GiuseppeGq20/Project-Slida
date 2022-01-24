@@ -134,7 +134,7 @@ plot +  labs(color="Sensors",x=TeX("$\\Delta A$"),y=TeX("$\\frac{d}{R}$"))
 
 #points + geom_smooth + full mod + mod_adj
 plot<-df_mod %>%  ggplot()+
-  geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))+
+  geom_point(aes(y=Distance, x= AreaDiff, color=as.factor(Sensor)))
 
 plot<-plot+  
   geom_smooth(aes(y=Distance, x= AreaDiff, colour= "LOESS"))+
