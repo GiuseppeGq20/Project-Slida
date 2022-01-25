@@ -27,10 +27,6 @@ y_hat= predict(mod_q,newdata = df_predict)
 
 df_predict= df_predict %>% mutate(yhat=y_hat)
 
-z_hat= df_predict$Distance - y_hat
-
-plot(y_hat,z_hat)
-
 dlim=max(df_predict$yhat)
 
 dlim=2.5*min(df_predict$yhat)
@@ -41,10 +37,6 @@ D_mean <- mean(df_mod$Distance)
 
 
 ###-------PLOT PATH------
-
-
-  
-
 
 ## DATA ------------------------------------------------------------------------
 R=150*10^-3;  # radius of the sensor circle [m]
