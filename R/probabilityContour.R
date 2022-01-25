@@ -85,7 +85,7 @@ d/(2*R) - df_mod$Distance #comparison with damage distances
 
 # define meshgrid
 R=150e-3
-N=10
+N=30
 x=seq(from=-R,to=R,length.out=N)
 y=x
 
@@ -105,13 +105,7 @@ for (i in 1:N){
     d=distance(df_mod = df_mod, x0=x[i],y0=y[j])/(2*R)
     p_point=dt((d -y.predict$fit)/sqrt(y.predict$se^2 + residual.scale^2), df= dof, log=TRUE)
     
-    # for (i in nrow(d)) {
-    #   qt=(d[i] -y.predict$fit[i])/sqrt(y.predict$se[i]^2 + residual.scale^2)
-    #   p=dt()
-    #   
-    # }
     logp = sum(p_point)
-#    print(exp(logp))
     prob[i,j]=logp
     
     # points(x[i],y[j])
@@ -119,7 +113,75 @@ for (i in 1:N){
     print(paste("Complete : ",toString(i/(N)*100)," % "))
 }
 
+#prob=-1/prob
+prob=exp(prob)
 
-contour(x,y,prob)
-plot3D::image2D(prob,x,y)
+# integral
+integr2 <- function(f,x,y) {
+  
+  Nx=length(x)
+  Ny=length(y)
+  DA=(x[2]-x[1])*(y[2]-y[1])
+  I=0
+  for(i in 1:(Nx-1) ){
+    for(j in 1:(Ny-1)){
+      I=I + DA*(f[i,j]+f[i,j+1]+f[i+1,j]+f[i+1,j+1])/4
+      #print(I)
+    }
+  }
+  return(I)
+}
+
+I=integr2(prob,x,y)
+
+prob=prob/I
+
+plotPoints <- function() {
+  ## DATA ------------------------------------------------------------------------
+  R=150*10^-3;  # radius of the sensor circle [m]
+  dalpha=30;     # angular distance between sensors [deg]
+  xd=81*10^-3;  # x coordinate of the damage center [m]
+  yd=40*10^-3;  # y coordinate of the damage center [m]
+  sx=26*10^-3;  # x-span of the damage [m]
+  sy=25*10^-3;  # y-span of the damage [m]
+  
+  ## Compute positions coordinates of the sensor ---------------------------------
+  alpha=seq(from=0,to=330,by=dalpha)
+  alpha=alpha*pi/180      # angular coordinates of the sensors [rad]
+  x_sens=R*cos(alpha)     # x coordinates of the sensors [m]
+  y_sens=R*sin(alpha)     # y coordinates of the sensors [m]
+  x_sens=c(x_sens,0)
+  y_sens=c(y_sens,0)
+  points(x_sens,y_sens,asp =1,pch = 19,
+         xlab="x [m]",
+         ylab="y [m]")
+  
+}
+
+contour(x,y,prob,xlab="x [m]", ylab="y [m]",asp=1)
+plotPoints()
 points(x=81e-3,y=40e-3, pch=19, col="red")
+
+
+plot3D::image2D(prob,x,y,asp=1)
+plotPoints()
+points(x=81e-3,y=40e-3, pch=19, col="red")
+
+# draw box
+max(prob)
+
+idx=which(prob==max(prob), arr.ind = TRUE )
+idx_x=idx[2]
+idx_y=idx[1]
+
+bound=3
+range_x=(idx_x-bound):(idx_x+bound)
+range_y=(idx_y-bound):(idx_y+bound)
+integr2(prob[range_x,range_y], x[range_x],y[range_y])
+
+rect(xleft = x[idx_x-bound],
+     xright = x[idx_x+bound],
+     ybottom = y[idx_y-bound],
+     ytop = y[idx_y+bound],
+     border = "black")
+
