@@ -1,18 +1,11 @@
 
 library(tidyverse)
 
-
 df<-read_csv("completeDf.csv")
-
 R=150e-3
-
 df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==3, AreaDiff > 0)
-
-
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
-
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
-
 
 #mod quadratico
 mod_q=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_mod)

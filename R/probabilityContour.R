@@ -3,7 +3,7 @@ library(tidyverse)
 library(plot3D)
 
 #load model
-load("mod.Rdata")
+#load("mod.Rdata")
 R=150e-3
 #load df
 df<-read_csv("completeDf.csv")
@@ -11,12 +11,52 @@ df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==7, AreaDiff > 0)
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
 
-# df_predict=df_mod
-# df_predict
-# dlim=1.8*min(df_predict$yhat)
-# damaged_path <- df_predict %>% arrange(yhat) %>%  filter(yhat<dlim)
+#tune model
+tuneModel <- function(formula,df_mod) {
+  
+  #adj mod
+  Radj=0
+  Radj_new=1
+  iter=0
+  df_temp=df_mod
+  
+  while(Radj_new>Radj ){
+    
+    mod_q=lm(formula, data=df_temp)
+    
+    Radj=summary(mod_q)$adj.r.squared
+    
+    #store removed points
+    temp<-df_temp %>% arrange(Distance,AreaDiff) %>% slice(1)
+    
+    removed_point<- add_row(temp)
+    
+    df_temp_q<-df_temp
+    #df_temp<- df_temp %>% mutate(minimize= sqrt((Distance/max(Distance))^2 + (AreaDiff/max(AreaDiff))^2) )
+    df_temp<- df_temp %>% mutate(minimize= Distance/max(Distance) + AreaDiff/max(AreaDiff) )
+    df_temp = df_temp %>% arrange(minimize) %>% slice(-1)
+    
+    mod_q2=lm(formula, data=df_temp)
+    
+    Radj_new=summary(mod_q2)$adj.r.squared
+    
+    iter=iter+1
+    
+    #control
+    print(paste("iter=",toString(iter)," Radj=",toString(Radj)))
+    
+  }
+  
+  return(mod_q)
+}
+formula=formula(Distance ~ AreaDiff + I(AreaDiff^2))
+mod_q=tuneModel(formula,df_mod)
 
-y.predict <- predict(mod_q,newdata = df_mod, se=TRUE,interval="predict")
+df_predict<-df %>% filter(Actuator!=20,Sensor!=20,Index==10, AreaDiff > 0)
+df_predict <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
+df_predict <- df_mod %>% mutate(Distance= Distance/(2*R) )
+
+y.predict <- predict(mod_q,newdata = df_predict, se=TRUE,interval="predict")
 
 dof=y.predict$df
 residual.scale=y.predict$residual.scale
@@ -26,34 +66,31 @@ y.predict<- data.frame(fit=y.predict$fit[,1],
                        fit.upr=y.predict$fit[,3],
                        x=df_mod$AreaDiff, se=y.predict$se.fit)
 
-#prova plot
-y.predict %>% mutate(y1=fit.upr,y2=fit.lwr) %>%
-  mutate(upr=fit +qt(0.975,df=dof)*sqrt(se^2 + residual.scale^2)) %>% 
-  ggplot()+
-  geom_line(aes(x=x, y=fit), color="red")+
-  geom_line(aes(x=x, y=y1), color="blue")+
-  geom_line(aes(x=x, y=y2), color="blue")+
-  geom_line(aes(x=x,y=upr), color="yellow")
-  geom_point(data = df_mod, mapping = aes(x= AreaDiff,y=Distance))
-
-#function to calculate probability
-# Z=model.matrix(mod_q)
-# zz_inv= pinv(Z)
-# a_stime= zz_inv %*% mod_q$model$Distance 
-
-# lambda_inv= as.matrix(zz_inv$d^-1) %*% diag(length(zz_inv$d))
-# zz_inv=zz_inv$u %*% lambda_inv %*% t(zz_inv$v)
 
 probabilty <- function(y0,y.predict,dof,mod_q) {
-  
   
   logp = sum(dt((y0-y.predict$fit)/y.predict$se,df= dof, log=TRUE))
   
   return( exp(logp))
 }
 
+# integral
+integr2 <- function(f,x,y) {
+  
+  Nx=length(x)
+  Ny=length(y)
+  DA=(x[2]-x[1])*(y[2]-y[1])
+  I=0
+  for(i in 1:(Nx-1) ){
+    for(j in 1:(Ny-1)){
+      I=I + DA*(f[i,j]+f[i,j+1]+f[i+1,j]+f[i+1,j+1])/4
+      #print(I)
+    }
+  }
+  return(I)
+}
 
-
+#calc distance
 distance<- function(df_mod,x0,y0){
   
   ##  Compute distances matrix D -------------------------------------------------
@@ -79,59 +116,7 @@ distance<- function(df_mod,x0,y0){
   return(D)
 }
  
-d= distance(df_mod = df_mod, x0=81e-3, y0=40e-3)
-d/(2*R) - df_mod$Distance #comparison with damage distances
-
-# define meshgrid
-R=150e-3
-N=40
-x=seq(from=-R,to=R,length.out=N)
-y=x
-
-plot(0,0,
-     xlim = c(-R,R),
-     ylim = c(-R,R))
-prob=matrix(0,N,N)
-
-
-for (i in 1:N){
-  
-  for (j in 1:N) {
-    
-    d=distance(df_mod = df_mod, x0=x[i],y0=y[j])/(2*R)
-    p_point=dt((d -y.predict$fit)/sqrt(y.predict$se^2 + residual.scale^2), df= dof, log=TRUE)
-    
-    logp = sum(p_point)
-    prob[i,j]=logp
-    
-    # points(x[i],y[j])
-  }
-    print(paste("Complete : ",toString(i/(N)*100)," % "))
-}
-
-#prob=-1/prob
-prob=exp(prob)
-
-# integral
-integr2 <- function(f,x,y) {
-  
-  Nx=length(x)
-  Ny=length(y)
-  DA=(x[2]-x[1])*(y[2]-y[1])
-  I=0
-  for(i in 1:(Nx-1) ){
-    for(j in 1:(Ny-1)){
-      I=I + DA*(f[i,j]+f[i,j+1]+f[i+1,j]+f[i+1,j+1])/4
-      #print(I)
-    }
-  }
-  return(I)
-}
-
-I=integr2(prob,x,y)
-
-prob=prob/I
-
+#plot sensor arrary
 plotPoints <- function() {
   ## DATA ------------------------------------------------------------------------
   R=150*10^-3;  # radius of the sensor circle [m]
@@ -154,11 +139,51 @@ plotPoints <- function() {
   
 }
 
+d= distance(df_mod = df_mod, x0=81e-3, y0=40e-3)
+#d/(2*R) - df_mod$Distance #comparison with damage distances
+
+# define meshgrid
+R=150e-3
+N=30
+x=seq(from=-R,to=R,length.out=N)
+y=x
+plot(0,0,
+     xlim = c(-R,R),
+     ylim = c(-R,R))
+prob=matrix(0,N,N)
+
+#log density probability matrix
+for (i in 1:N){
+  for (j in 1:N) {
+    
+    d=distance(df_mod = df_mod, x0=x[i],y0=y[j])/(2*R)
+    
+    #probability density calculation
+    p_point=dt((d -y.predict$fit)/sqrt(y.predict$se^2 + residual.scale^2), df= dof, log=TRUE)
+    
+    logp = sum(p_point)
+    prob[i,j]=logp
+    
+    # points(x[i],y[j])
+  }
+  #progress bar 
+  print(paste("Complete : ",toString(i/(N)*100)," % "))
+}
+
+prob=exp(prob)
+
+I=integr2(prob,x,y)
+
+prob=prob/I #normalization
+
+#plotting
+
+#normalized density contour
 contour(x,y,prob,xlab="x [m]", ylab="y [m]",asp=1)
 plotPoints()
 points(x=81e-3,y=40e-3, pch=19, col="red")
 
-
+#normalized density image
 plot3D::image2D(prob,x,y,asp=1)
 plotPoints()
 points(x=81e-3,y=40e-3, pch=19, col="red")
@@ -170,14 +195,24 @@ idx=which(prob==max(prob), arr.ind = TRUE )
 idx_x=idx[1]
 idx_y=idx[2]
 
-bound=3
+bound=1
+p_box=0
+alpha=0.01
+while (p_box<1-alpha) {
+  
+
 range_x=(idx_x-bound):(idx_x+bound)
 range_y=(idx_y-bound):(idx_y+bound)
-integr2(prob[range_x,range_y], x[range_x],y[range_y])
 
+p_box=integr2(prob[range_x,range_y], x[range_x],y[range_y])
+
+bound=bound+1
+}
 rect(xleft = x[idx_x-bound],
      xright = x[idx_x+bound],
      ybottom = y[idx_y-bound],
      ytop = y[idx_y+bound],
      border = "black")
+
+print(paste("box confidence level = " ,toString((p_box)*100 ),"%"))
 
