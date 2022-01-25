@@ -6,12 +6,11 @@ library(latex2exp)
 df<-read_csv("completeDf.csv")
 
 R=150e-3
-
 df_mod<-df %>% filter(Actuator!=20,Sensor!=20, AreaDiff > 0)
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 
-
+tuneModel <- function(formula,df_mod) {
 
 #adj mod
 Radj=0
@@ -19,13 +18,9 @@ Radj_new=1
 iter=0
 df_temp=df_mod
 
-# removed_point=data.frame(matrix(ncol = ncol(df_mod), nrow = 0))
-removed_point=0
-# colnames(removed_point)<-names(df_mod)
-
 while(Radj_new>Radj ){
   
-  mod_q=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_temp)
+  mod_q=lm(formula, data=df_temp)
   
   Radj=summary(mod_q)$adj.r.squared
   
@@ -39,7 +34,7 @@ while(Radj_new>Radj ){
   df_temp<- df_temp %>% mutate(minimize= Distance/max(Distance) + AreaDiff/max(AreaDiff) )
   df_temp = df_temp %>% arrange(minimize) %>% slice(-1)
   
-  mod_q2=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_temp)
+  mod_q2=lm(formula, data=df_temp)
   
   Radj_new=summary(mod_q2)$adj.r.squared
   
@@ -49,7 +44,12 @@ while(Radj_new>Radj ){
   print(paste("iter=",toString(iter)," Radj=",toString(Radj)))
   
 }
-# plot(mod_q)
+
+return(mod_q)
+}
+
+formula=formula(Distance ~ AreaDiff + I(AreaDiff^2))
+mod_q=tuneModel(formula,df_mod)
 
 #plot model vs geom_smooth
 df_mod %>%  ggplot()+
