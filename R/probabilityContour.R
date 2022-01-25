@@ -1,4 +1,3 @@
-#BROKEN
 
 library(tidyverse)
 library(plot3D)
@@ -8,7 +7,7 @@ load("mod.Rdata")
 R=150e-3
 #load df
 df<-read_csv("completeDf.csv")
-df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==2, AreaDiff > 0)
+df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==7, AreaDiff > 0)
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
 
@@ -85,7 +84,7 @@ d/(2*R) - df_mod$Distance #comparison with damage distances
 
 # define meshgrid
 R=150e-3
-N=30
+N=40
 x=seq(from=-R,to=R,length.out=N)
 y=x
 
@@ -94,9 +93,6 @@ plot(0,0,
      ylim = c(-R,R))
 prob=matrix(0,N,N)
 
-# Z=model.matrix(mod_q)
-# inflation= t(df_mod$AreaDiff, df_mod$AreaDiff^2) %*% solve((t(Z) %*%Z)) %*% df_mod$AreaDiff
-# sigma_hat= crossprod(mod_q$residuals)/mod_q$df.residual
 
 for (i in 1:N){
   
@@ -171,8 +167,8 @@ points(x=81e-3,y=40e-3, pch=19, col="red")
 max(prob)
 
 idx=which(prob==max(prob), arr.ind = TRUE )
-idx_x=idx[2]
-idx_y=idx[1]
+idx_x=idx[1]
+idx_y=idx[2]
 
 bound=3
 range_x=(idx_x-bound):(idx_x+bound)
