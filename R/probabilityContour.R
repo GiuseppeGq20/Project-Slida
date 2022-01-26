@@ -49,7 +49,7 @@ tuneModel <- function(formula,df_mod) {
 formula=formula(Distance ~ AreaDiff + I(AreaDiff^2))
 mod_q=tuneModel(formula,df_mod)
 
-mod_q<-lm(formula,data = df_mod)
+#mod_q<-lm(formula,data = df_mod)
 
 #test df
 df_predict<-df %>% filter(Actuator!=20,Sensor!=20,Index==2, AreaDiff > 0)
@@ -192,7 +192,7 @@ idx_y=idx[2]
 
 bound=0
 p_box=0
-alpha=0.01
+alpha=0.05
 while (p_box<1-alpha) {
   
 bound=bound+1
@@ -210,5 +210,5 @@ rect(xleft = x[idx_x-bound],
      ytop = y[idx_y+bound],
      border = "black")
 
-print(paste("box confidence level = " ,toString((p_box)*100 ),"%"))
-title(main = paste("box confidence level = " ,toString(round((p_box)*100,digits = 2) ),"%"))
+print(paste("box prediction level = " ,toString((p_box)*100 ),"%"))
+title(main = paste("box prediction level = " ,toString(round((p_box)*100,digits = 2) ),"%"))
