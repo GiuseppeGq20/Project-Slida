@@ -192,7 +192,7 @@ idx_y=idx[2]
 
 bound=0
 p_box=0
-alpha=0.05
+alpha=0.01
 while (p_box<1-alpha) {
   
 bound=bound+1
