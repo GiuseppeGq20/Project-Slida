@@ -2,12 +2,10 @@
 library(tidyverse)
 library(plot3D)
 
-#load model
-#load("mod.Rdata")
 R=150e-3
 #load df
 df<-read_csv("completeDf.csv")
-df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==7, AreaDiff > 0)
+df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==10, AreaDiff > 0)
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
 
@@ -52,7 +50,10 @@ tuneModel <- function(formula,df_mod) {
 formula=formula(Distance ~ AreaDiff + I(AreaDiff^2))
 mod_q=tuneModel(formula,df_mod)
 
-df_predict<-df %>% filter(Actuator!=20,Sensor!=20,Index==10, AreaDiff > 0)
+#mod_q<-lm(formula,data = df_mod)
+
+#test df
+df_predict<-df %>% filter(Actuator!=20,Sensor!=20,Index==4, AreaDiff > 0)
 df_predict <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 df_predict <- df_mod %>% mutate(Distance= Distance/(2*R) )
 
@@ -65,14 +66,6 @@ y.predict<- data.frame(fit=y.predict$fit[,1],
                        fit.lwr=y.predict$fit[,2],
                        fit.upr=y.predict$fit[,3],
                        x=df_mod$AreaDiff, se=y.predict$se.fit)
-
-
-probabilty <- function(y0,y.predict,dof,mod_q) {
-  
-  logp = sum(dt((y0-y.predict$fit)/y.predict$se,df= dof, log=TRUE))
-  
-  return( exp(logp))
-}
 
 # integral
 integr2 <- function(f,x,y) {
@@ -144,7 +137,7 @@ d= distance(df_mod = df_mod, x0=81e-3, y0=40e-3)
 
 # define meshgrid
 R=150e-3
-N=30
+N=50
 x=seq(from=-R,to=R,length.out=N)
 y=x
 plot(0,0,
@@ -159,12 +152,11 @@ for (i in 1:N){
     d=distance(df_mod = df_mod, x0=x[i],y0=y[j])/(2*R)
     
     #probability density calculation
-    p_point=dt((d -y.predict$fit)/sqrt(y.predict$se^2 + residual.scale^2), df= dof, log=TRUE)
+    f_point=dt((d -y.predict$fit)/sqrt(y.predict$se^2 + residual.scale^2), df= dof, log=TRUE)
     
-    logp = sum(p_point)
-    prob[i,j]=logp
-    
-    # points(x[i],y[j])
+    logf = sum(f_point)
+    prob[i,j]=logf
+
   }
   #progress bar 
   print(paste("Complete : ",toString(i/(N)*100)," % "))
@@ -179,35 +171,40 @@ prob=prob/I #normalization
 #plotting
 
 #normalized density contour
-contour(x,y,prob,xlab="x [m]", ylab="y [m]",asp=1)
+plot3D::contour2D(prob,x,y,
+                  xlab="x [m]", ylab="y [m]",
+                  asp=1)
 plotPoints()
 points(x=81e-3,y=40e-3, pch=19, col="red")
 
 #normalized density image
-plot3D::image2D(prob,x,y,asp=1)
+plot3D::image2D(prob,x,y,
+                xlab="x [m]", ylab="y [m]",
+                asp=1,col=hcl.colors(100, "Oslo"))
 plotPoints()
 points(x=81e-3,y=40e-3, pch=19, col="red")
 
 # draw box
-max(prob)
 
+max(prob)
 idx=which(prob==max(prob), arr.ind = TRUE )
 idx_x=idx[1]
 idx_y=idx[2]
 
-bound=1
+bound=0
 p_box=0
 alpha=0.01
 while (p_box<1-alpha) {
   
+bound=bound+1
 
 range_x=(idx_x-bound):(idx_x+bound)
 range_y=(idx_y-bound):(idx_y+bound)
 
 p_box=integr2(prob[range_x,range_y], x[range_x],y[range_y])
 
-bound=bound+1
 }
+
 rect(xleft = x[idx_x-bound],
      xright = x[idx_x+bound],
      ybottom = y[idx_y-bound],
@@ -215,4 +212,4 @@ rect(xleft = x[idx_x-bound],
      border = "black")
 
 print(paste("box confidence level = " ,toString((p_box)*100 ),"%"))
-
+title(main = paste("box confidence level = " ,toString(round((p_box)*100,digits = 2) ),"%"))
