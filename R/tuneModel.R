@@ -10,8 +10,10 @@ df_mod<-df %>% filter(Actuator!=20,Sensor!=20, AreaDiff > 0)
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 
-tuneModel <- function(formula,df_mod) {
 
+#tune model
+
+formula=formula(Distance ~ AreaDiff + I(AreaDiff^2))
 #adj mod
 Radj=0
 Radj_new=1
@@ -24,10 +26,6 @@ while(Radj_new>Radj ){
   
   Radj=summary(mod_q)$adj.r.squared
   
-  #store removed points
-  temp<-df_temp %>% arrange(Distance,AreaDiff) %>% slice(1)
-   
-  removed_point<- add_row(temp)
   
   df_temp_q<-df_temp
   #df_temp<- df_temp %>% mutate(minimize= sqrt((Distance/max(Distance))^2 + (AreaDiff/max(AreaDiff))^2) )
@@ -45,11 +43,7 @@ while(Radj_new>Radj ){
   
 }
 
-return(mod_q)
-}
 
-formula=formula(Distance ~ AreaDiff + I(AreaDiff^2))
-mod_q=tuneModel(formula,df_mod)
 
 #plot model vs geom_smooth
 df_mod %>%  ggplot()+

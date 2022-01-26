@@ -1,7 +1,7 @@
 # full tuned model
 library(tidyverse)
 
-
+# Functions ----
 plot_d <- function(damaged_path) {
   ## DATA ------------------------------------------------------------------------
   R=150*10^-3;  # radius of the sensor circle [m]
@@ -153,27 +153,28 @@ plot_d <- function(damaged_path) {
   text(-0.3,-0.1,labels = labels)
 }
 
-tunemodel <- function(df_temp) {
+tunemodel <- function(formula,df_temp) {
   Radj=0
   Radj_new=1
   iter=0
   while(Radj_new>Radj ){
     
-    mod_q=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_temp)
+    mod_q=lm(formula, data=df_temp)
     
     Radj=summary(mod_q)$adj.r.squared
-    
-    #store removed points
-    temp<-df_temp %>% arrange(Distance,AreaDiff) %>% slice(1)
-    
-    removed_point<- add_row(temp)
-    
+
     df_temp_q<-df_temp
+    
+    ##L2 norm
     #df_temp<- df_temp %>% mutate(minimize= sqrt((Distance/max(Distance))^2 + (AreaDiff/max(AreaDiff))^2) )
+    
+    ##L1 norm
     df_temp<- df_temp %>% mutate(minimize= Distance/max(Distance) + AreaDiff/max(AreaDiff) )
+    
+    # censor observartion
     df_temp = df_temp %>% arrange(minimize) %>% slice(-1)
     
-    mod_q2=lm(Distance ~ AreaDiff + I(AreaDiff^2), data=df_temp)
+    mod_q2=lm(formula, data=df_temp)
     
     Radj_new=summary(mod_q2)$adj.r.squared
     
@@ -187,25 +188,29 @@ tunemodel <- function(df_temp) {
   return(mod_q)
 }
 
+
+# script ----
+
+#read dataframe
 R=150e-3
 df<-read_csv("completeDf.csv")
 df_mod<-df %>% filter(Actuator!=20,Sensor!=20, AreaDiff > 0)
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 
+#results
 for (idx in 1:10) {
   
   df.train<-df_mod %>% filter(Index!=idx)
   df.test<-df_mod %>% filter(Index==idx)
   
-  mod= tunemodel(df.train)
+  formula=formula=formula(Distance ~ AreaDiff + I(AreaDiff^2))
+  mod= tunemodel(formula,df.train)
   
   y_hat= predict(mod,newdata = df.test)
   
   df.test= df.test %>% mutate(yhat=y_hat)
-  
-  dlim=max(df.test$yhat)
-  
+
   dlim=3*min(df.test$yhat)
   df.test <- df.test %>% arrange(yhat) %>%  filter(yhat<dlim)
   

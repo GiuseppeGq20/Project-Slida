@@ -36,7 +36,7 @@ Trapz<- function(f,x){
 
 
 #-------------------------------------------------------------------------------
-DArea <- function(df,nrow){
+DArea <- function(df,nrow,data_dir){
   # df    dataframe output of ComputeDistance.R
   # nrow  Number of the rows
   
@@ -47,6 +47,7 @@ DArea <- function(df,nrow){
   sens_pre <- read.csv(filename)
   
   filename= df$File_post[nrow]
+  
   sens_post <- read.csv(filename)
   names=c("times")
   colnames(sens_pre) <- names

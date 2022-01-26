@@ -1,11 +1,10 @@
 
 library(tidyverse)
-library(plot3D)
 
 R=150e-3
 #load df
 df<-read_csv("completeDf.csv")
-df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==10, AreaDiff > 0)
+df_mod<-df %>% filter(Actuator!=20,Sensor!=20,Index==8, AreaDiff > 0)
 df_mod <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 df_mod <- df_mod %>% mutate(Distance= Distance/(2*R) )
 
@@ -50,10 +49,10 @@ tuneModel <- function(formula,df_mod) {
 formula=formula(Distance ~ AreaDiff + I(AreaDiff^2))
 mod_q=tuneModel(formula,df_mod)
 
-#mod_q<-lm(formula,data = df_mod)
+mod_q<-lm(formula,data = df_mod)
 
 #test df
-df_predict<-df %>% filter(Actuator!=20,Sensor!=20,Index==4, AreaDiff > 0)
+df_predict<-df %>% filter(Actuator!=20,Sensor!=20,Index==2, AreaDiff > 0)
 df_predict <- df_mod %>% filter(!(Actuator==21 & Sensor==49))
 df_predict <- df_mod %>% mutate(Distance= Distance/(2*R) )
 
@@ -193,7 +192,7 @@ idx_y=idx[2]
 
 bound=0
 p_box=0
-alpha=0.01
+alpha=0.05
 while (p_box<1-alpha) {
   
 bound=bound+1

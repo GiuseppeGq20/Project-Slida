@@ -147,15 +147,7 @@ for (i in 1:N_sens){
 df=data.frame(cbind(Attuatore,Sensore,Response,Index,a_path,b_path,nomefile_pre,nomefile_post))
 names(df)=c("Actuator","Sensor","Distance","Index","a_path","b_path","File_pre","File_post")
 
-# library(tidyverse)
-# df=df %>% mutate(Actuator=as.factor(Actuator), Sensor= as.factor(Sensor),Distance=as.numeric(Distance),
-#                  Index= as.factor(Index),File_pre= as.factor(File_pre)
-#                  ,File_post= as.factor(File_post))
-# 
-# df %>% ggplot()+
-#   geom_density(mapping=aes(x=Distance,fill=Sensor))#+
-#  facet_wrap(~ Actuator)
-
+# write dataframe of distances
 write.csv(df, file = "df_Distance.csv")
 
 

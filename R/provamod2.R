@@ -1,3 +1,6 @@
+
+# test script to investigate different models
+
 library(tidyverse)
 
 df<-read_csv("completeDf.csv")
@@ -38,14 +41,6 @@ summary(mod)
 plot(mod)
 
 df_mod<-df_mod[-c(2,4,40),] %>% mutate(yhat=predict(mod))
-
-
-#df %>% filter(Actuator==21,Sensor==20,Index==1)
-  
-
-#df_mod %>% ggplot()+
-#  geom_point(aes(x=Distance, y= AreaDiff, color=as.factor(Sensor)))+
-#  facet_wrap(~as.factor(Actuator))
 
 df_mod_2<-df %>% filter(Actuator!=20,Sensor!=20,Index==3, AreaDiff > 0)
 

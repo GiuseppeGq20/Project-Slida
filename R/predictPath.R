@@ -1,4 +1,6 @@
 
+#example of a result plot
+
 library(tidyverse)
 
 df<-read_csv("completeDf.csv")

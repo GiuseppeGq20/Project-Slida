@@ -1,5 +1,6 @@
 library("tidyverse")
 
+#for this script:
 #Set DATI as Working Directory
 
 filename= "A21 PRE/A21_pre_1.csv"
@@ -109,8 +110,8 @@ FR<- 60000   #Frequenza 60KHz
 
 for (i in 3:14) {
   id_tre_max<-  k_max_rel(sens21_pre[,i]^2,3)            #prende gli indici dei tre massimi
-  id_max<-      sort(id_tre_max)[2]                      #questo è l'indice del max centrale
-  sens21_pre[abs(sens21_pre$times  -  sens21_pre$times[id_max])>2.25/FR,i]=0   #DOVE è VERO PONGO TUTTO A ZERO
+  id_max<-      sort(id_tre_max)[2]                      #questo ? l'indice del max centrale
+  sens21_pre[abs(sens21_pre$times  -  sens21_pre$times[id_max])>2.25/FR,i]=0   #DOVE ? VERO PONGO TUTTO A ZERO
   sens21_post[abs(sens21_post$times  -  sens21_post$times[id_max])>2.25/FR,i]=0
 }
 
@@ -150,73 +151,73 @@ ggplot()+
 
 #Vedo graficamente alcuni percorsi come cambiano
 
-#Il percorso 21-45 è VICINO al danno
+#Il percorso 21-45 ? VICINO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r45), color='red')+
   geom_line(data= sens21_post, mapping = aes(x=times, y= r45), color='blue')
 
-#Il percorso 21-46 è VICINO al danno
+#Il percorso 21-46 ? VICINO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r46), color= "red" ) + 
   geom_line(data= sens21_post, mapping = aes(x=times, y= r46), color= "blue" )
   
   
-#Il percorso 21-20 è LONTANO al danno
+#Il percorso 21-20 ? LONTANO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r20), color= "red" ) + 
   geom_line(data= sens21_post, mapping = aes(x=times, y= r20), color= "blue" )
 
-#Il percorso 21-22 è LONTANO al danno
+#Il percorso 21-22 ? LONTANO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r22), color='red')+
   geom_line(data= sens21_post, mapping = aes(x=times, y= r22), color='blue')  
 
-#Il percorso 21-24 è LONTANO al danno
+#Il percorso 21-24 ? LONTANO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r24), color= "red" ) + 
   geom_line(data= sens21_post, mapping = aes(x=times, y= r24), color= "blue" )
 
-#Il percorso 21-25 è LONTANO al danno
+#Il percorso 21-25 ? LONTANO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r25), color='red')+
   geom_line(data= sens21_post, mapping = aes(x=times, y= r25), color='blue')  
 
-#Il percorso 21-42 è LONTANO al danno
+#Il percorso 21-42 ? LONTANO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r42), color='red')+
   geom_line(data= sens21_post, mapping = aes(x=times, y= r42), color='blue')
-#Il percorso 21-43 è LONTANO al danno
+#Il percorso 21-43 ? LONTANO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r43), color= "red" ) + 
   geom_line(data= sens21_post, mapping = aes(x=times, y= r43), color= "blue" )
 
-#Il percorso 21-44 è LONTANO al danno
+#Il percorso 21-44 ? LONTANO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r44), color='red')+
   geom_line(data= sens21_post, mapping = aes(x=times, y= r44), color='blue')  
 
-#Il percorso 21-47 è LONTANO al danno
+#Il percorso 21-47 ? LONTANO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r47), color='red')+
   geom_line(data= sens21_post, mapping = aes(x=times, y= r47), color='blue')
 
-#Il percorso 21-48 è LONTANO al danno
+#Il percorso 21-48 ? LONTANO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r48), color= "red" ) + 
   geom_line(data= sens21_post, mapping = aes(x=times, y= r48), color= "blue" )
 
-#Il percorso 21-49 è LONTANO al danno
+#Il percorso 21-49 ? LONTANO al danno
 ggplot()+
   geom_line(data= sens21_pre, mapping = aes(x=times, y= r49), color='red')+
   geom_line(data= sens21_post, mapping = aes(x=times, y= r49), color='blue')  
 
-#ATTENZIONE !!! VA TUTTO BENE, SOLO L'ULTIMO PERCORSO R49 DA PROBLEMI, è SICURAMENTE UN OUTLIER DA ELIMINARE
+#ATTENZIONE !!! VA TUTTO BENE, SOLO L'ULTIMO PERCORSO R49 DA PROBLEMI, ? SICURAMENTE UN OUTLIER DA ELIMINARE
 #ATTENZIONE !!! IL PERCORSO R45 SEMBRA FUORI FASE !! 
-#NB: LA COSA STRANA è CHE QUESTI DUE PROBLEMI SI HANNO PER TUTTI E 10 I DATAFRAME DI SENS21
+#NB: LA COSA STRANA ? CHE QUESTI DUE PROBLEMI SI HANNO PER TUTTI E 10 I DATAFRAME DI SENS21
 
 
 
-#Normalizziamo i segnali in modo tale da rimuovere l'effetto per cui ricevitori più lontani hanno
+#Normalizziamo i segnali in modo tale da rimuovere l'effetto per cui ricevitori pi? lontani hanno
 #ampiezze minori in modo tale da calcolare la differenza delle aree 
 
 for (i in 3:14){
@@ -225,7 +226,7 @@ for (i in 3:14){
   sens21_post[,i]<- sens21_post[,i]/A
 }
 
-#Dobbiamo scartare quelli che hanno un'area Post maggiore dell'area Pre in quanto non è fisico
+#Dobbiamo scartare quelli che hanno un'area Post maggiore dell'area Pre in quanto non ? fisico
 
 
 
@@ -256,7 +257,7 @@ for (i in 3:14) {
 AreaPRE[i-2] <- Trapz(sens21_pre[,i]^2,sens21_pre$times)
 AreaPOST[i-2] <- Trapz(sens21_post[,i]^2,sens21_post$times)
 }
-#Facendo il quadrato non solo stiamo facendo tutto positivo, ma riduciamo la sensibilità agli estremi
+#Facendo il quadrato non solo stiamo facendo tutto positivo, ma riduciamo la sensibilit? agli estremi
 
 Delta <- AreaPRE-AreaPOST
 
