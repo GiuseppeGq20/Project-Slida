@@ -34,14 +34,14 @@
 
 ### SETUP
 
-1) Set "/DATI" as working directory 
-2) ComputeDistance.R 
-3) CreateComplete_df.R 
+1) Set `"/DATI"` as working directory 
+2) source `ComputeDistance.R` 
+3) source `CreateComplete_df.R` 
 
 ### RESULTS
 
-4) testModel.R
-5) probabilityContour.R
+4) source `testModel.R`
+5) source `probabilityContour.R`
 
 
 
