@@ -49,7 +49,7 @@ tuneModel <- function(formula,df_mod) {
 formula=formula(Distance ~ AreaDiff + I(AreaDiff^2))
 mod_q=tuneModel(formula,df_mod)
 
-mod_q<-lm(formula,data = df_mod)
+#mod_q<-lm(formula,data = df_mod)
 
 #test df
 df_predict<-df %>% filter(Actuator!=20,Sensor!=20,Index==2, AreaDiff > 0)
